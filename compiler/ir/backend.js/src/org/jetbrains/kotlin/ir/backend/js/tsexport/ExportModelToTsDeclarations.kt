@@ -286,11 +286,11 @@ class ExportModelToTsDeclarations(private val moduleKind: ModuleKind) {
         val (membersForNamespace, membersForClassItself) = members.partition { isInterface && it is ExportedFunction && it.isStatic }
         val namespaceMembers = membersForNamespace.map { (it as ExportedFunction).copy(isMember = false) }
         val classMembers = membersForClassItself.map {
-            if (!isInner || it !is ExportedFunction || !it.isStatic) {
-                it
-            } else {
+            if (isInner && it is ExportedFunction && it.isStatic) {
                 // Remove $outer argument from secondary constructors of inner classes
                 it.copy(parameters = it.parameters.drop(1))
+            } else {
+                it
             }
         }
 
