@@ -283,7 +283,7 @@ class ExportModelToTsDeclarations(private val moduleKind: ModuleKind) {
         val superClassClause = superClasses.toExtendsClause(indent)
         val superInterfacesClause = superInterfaces.toImplementsClause(superInterfacesKeyword, indent)
 
-        val (membersForClassItself, membersForNamespace) = members.partition { !isInterface || it !is ExportedFunction || !it.isStatic }
+        val (membersForNamespace, membersForClassItself) = members.partition { isInterface && it is ExportedFunction && it.isStatic }
         val namespaceMembers = membersForNamespace.map { (it as ExportedFunction).copy(isMember = false) }
         val classMembers = membersForClassItself.map {
             if (!isInner || it !is ExportedFunction || !it.isStatic) {
