@@ -198,7 +198,10 @@ fun Project.projectTest(
         evaluationDependsOn(":test-instrumenter")
     }
     return getOrCreateTask<Test>(taskName) {
-        inputs.files(rootProject.tasks.named("createIdeaHomeForTests").map { it.outputs.files }).withPathSensitivity(PathSensitivity.RELATIVE)
+        inputs.file(
+            rootProject.tasks.named("createIdeaHomeForTests")
+                .map { task -> task.outputs.files.singleFile.listFiles { file -> file.name == "build.txt" }.single() })
+            .withPathSensitivity(PathSensitivity.RELATIVE)
 
         muteWithDatabase()
         if (jUnitMode == JUnitMode.JUnit4) {
@@ -367,12 +370,12 @@ fun Project.projectTest(
                     ?: forks.coerceIn(1, Runtime.getRuntime().availableProcessors())
         }
 
-        if (!kotlinBuildProperties.isTeamcityBuild) {
+        //if (!kotlinBuildProperties.isTeamcityBuild) {
             defineJDKEnvVariables.forEach { version ->
                 val jdkHome = project.getToolchainJdkHomeFor(version).orNull ?: error("Can't find toolchain for $version")
                 environment(version.envName, jdkHome)
             }
-        }
+        //}
     }.apply { configure(body) }
 }
 
