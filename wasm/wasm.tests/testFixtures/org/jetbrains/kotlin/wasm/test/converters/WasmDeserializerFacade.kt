@@ -26,8 +26,6 @@ import org.jetbrains.kotlin.ir.backend.js.loadWebKlibsInTestPipeline
 import org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir.JsManglerDesc
 import org.jetbrains.kotlin.ir.util.SymbolTable
 import org.jetbrains.kotlin.library.KotlinLibrary
-import org.jetbrains.kotlin.library.isWasmKotlinTest
-import org.jetbrains.kotlin.library.isWasmStdlib
 import org.jetbrains.kotlin.library.loader.KlibPlatformChecker
 import org.jetbrains.kotlin.psi2ir.generators.TypeTranslatorImpl
 import org.jetbrains.kotlin.resolve.BindingContext
@@ -47,46 +45,8 @@ import org.jetbrains.kotlin.test.services.service
 import org.jetbrains.kotlin.wasm.config.wasmTarget
 import java.io.File
 
-enum class SingleModuleType {
-    STDLIB, KOTLIN_TEST, TEST_MODULE
-}
-
-class WasmDeserializerSingleModuleFacade(testServices: TestServices, private val singleModuleType: SingleModuleType) :
+class WasmDeserializerSingleModuleFacade(testServices: TestServices) :
     WasmDeserializerFacadeBase(testServices) {
-
-    override fun getMainModule(module: TestModule, inputArtifact: BinaryArtifacts.KLib): MainModule.Klib {
-        val libraries = WasmEnvironmentConfigurator.getDependencyLibrariesFor(module, testServices)
-        return when (singleModuleType) {
-            SingleModuleType.STDLIB -> MainModule.Klib(libraries.single { it.isWasmStdlib }.libraryFile.absolutePath)
-            SingleModuleType.KOTLIN_TEST -> MainModule.Klib(libraries.single { it.isWasmKotlinTest }.libraryFile.absolutePath)
-            SingleModuleType.TEST_MODULE -> super.getMainModule(module, inputArtifact)
-        }
-    }
-
-    override fun loadKLibs(module: TestModule, mainModule: MainModule.Klib, configuration: CompilerConfiguration): LoadedKlibs {
-        val libraries = WasmEnvironmentConfigurator.getDependencyLibrariesFor(module, testServices)
-        return when (singleModuleType) {
-            SingleModuleType.STDLIB -> {
-                val stdlib = libraries.single { it.isWasmStdlib }
-                LoadedKlibs(
-                    all = listOf(stdlib),
-                    friends = emptyList(),
-                    included = stdlib
-                )
-            }
-            SingleModuleType.KOTLIN_TEST -> {
-                check(libraries.size == 2) //stdlib and kotlin.test
-                LoadedKlibs(
-                    all = libraries,
-                    friends = emptyList(),
-                    included = libraries.single { it.isWasmKotlinTest }
-                )
-            }
-            SingleModuleType.TEST_MODULE -> {
-                super.loadKLibs(module, mainModule, configuration)
-            }
-        }
-    }
 
     override fun loadKLibsIr(modulesStructure: ModulesStructure): IrModuleInfo =
         loadIrForSingleModule(modulesStructure, IrFactoryImplForWasmIC(WholeWorldStageController()))

@@ -16,7 +16,12 @@ import org.jetbrains.kotlin.test.services.TestServices
 import org.jetbrains.kotlin.test.services.moduleStructure
 import org.jetbrains.kotlin.wasm.test.tools.WasmVM
 import org.jetbrains.kotlin.test.services.configuration.WasmEnvironmentConfigurator
-import org.jetbrains.kotlin.wasm.test.handlers.PrecompiledWasmSaver.Companion.precompileDir
+import org.jetbrains.kotlin.test.services.configuration.WasmEnvironmentConfigurator.Companion.kotlinTestPath
+import org.jetbrains.kotlin.test.services.configuration.WasmEnvironmentConfigurator.Companion.stdlibPath
+import org.jetbrains.kotlin.wasm.test.precompiledKotlinTestOutputDir
+import org.jetbrains.kotlin.wasm.test.precompiledKotlinTestOutputName
+import org.jetbrains.kotlin.wasm.test.precompiledStdlibOutputDir
+import org.jetbrains.kotlin.wasm.test.precompiledStdlibOutputName
 import java.io.File
 
 class WasmBoxRunnerWithPrecompiled(
@@ -59,23 +64,18 @@ class WasmBoxRunnerWithPrecompiled(
         val debugMode = DebugMode.fromSystemProperty("kotlin.wasm.debugMode")
         val startUnitTests = RUN_UNIT_TESTS in testServices.moduleStructure.allDirectives
 
-        val precompiledDir = testServices.precompileDir()
-
-        val stdlibPath = File(precompiledDir, "_kotlin_")
-        val stdlibInitFile = File(stdlibPath, "_kotlin_.uninstantiated.mjs")
-
-        val kotlinTestPath = File(precompiledDir, "_kotlin-test_")
-        val kotlinTestInitFile = File(kotlinTestPath, "_kotlin-test_.uninstantiated.mjs")
+        val stdlibInitFile = File(precompiledStdlibOutputDir, "$precompiledStdlibOutputName.uninstantiated.mjs")
+        val kotlinTestInitFile = File(precompiledKotlinTestOutputDir, "$precompiledKotlinTestOutputName.uninstantiated.mjs")
 
         val testJs = """
                     let actualResult;
                     try {
                         // Use "dynamic import" to catch exception happened during JS & Wasm modules initialization
-                        os.chdir('${stdlibPath.toJsPath()}');
+                        os.chdir('${precompiledStdlibOutputDir.toJsPath()}');
                         let stdlib = await import('${stdlibInitFile.toJsPath()}');
                         let stdlibInstantiate = await stdlib.instantiate();
                 
-                        os.chdir('${kotlinTestPath.toJsPath()}');
+                        os.chdir('${precompiledKotlinTestOutputDir.toJsPath()}');
                         let test = await import('${kotlinTestInitFile.toJsPath()}');
                         let testInstantiate = await test.instantiate({ '<kotlin>': stdlibInstantiate.exports });
                 

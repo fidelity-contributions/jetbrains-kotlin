@@ -23,49 +23,42 @@ import org.jetbrains.kotlin.test.services.EnvironmentConfigurator
 import org.jetbrains.kotlin.test.services.TestServices
 import org.jetbrains.kotlin.test.services.configuration.WasmEnvironmentConfiguratorJs
 import org.jetbrains.kotlin.test.services.moduleStructure
-import org.jetbrains.kotlin.wasm.test.converters.SingleModuleType
 import org.jetbrains.kotlin.wasm.test.converters.WasmBackendSingleModuleFacade
-import org.jetbrains.kotlin.wasm.test.handlers.PrecompiledWasmSaver
 import org.jetbrains.kotlin.wasm.test.handlers.WasmBoxRunnerWithPrecompiled
+import org.junit.jupiter.api.BeforeAll
 
-abstract class FirWasmJsSingleModuleBase(
-    private val singleModuleType: SingleModuleType,
-    pathToTestDir: String,
-    testGroupOutputDirPrefix: String,
+open class AbstractFirWasmJsCodegenSingleModuleBoxTest(
+    testGroupOutputDirPrefix: String = "codegen/firSingleModuleBox/"
 ) : AbstractFirWasmTest(
-    WasmPlatforms.wasmJs,
-    pathToTestDir,
-    testGroupOutputDirPrefix,
+    targetPlatform = WasmPlatforms.wasmJs,
+    pathToTestDir = "compiler/testData/codegen/box/",
+    testGroupOutputDirPrefix = testGroupOutputDirPrefix
 ) {
+    companion object {
+        @JvmStatic
+        private var precompileIsDone = false
+
+        @BeforeAll
+        @JvmStatic
+        @Synchronized
+        fun precompileTestDependencies() {
+            if (!precompileIsDone) {
+                precompileWasmModules()
+                precompileIsDone = true
+            }
+        }
+    }
+
     override val wasmBoxTestRunner: Constructor<AnalysisHandler<BinaryArtifacts.Wasm>>
-        get() = if (singleModuleType != SingleModuleType.TEST_MODULE) ::PrecompiledWasmSaver else ::WasmBoxRunnerWithPrecompiled
+        get() = ::WasmBoxRunnerWithPrecompiled
 
     override val wasmEnvironmentConfigurator: Constructor<EnvironmentConfigurator>
         get() = ::WasmEnvironmentConfiguratorJs
 
     override val afterBackendFacade: Constructor<AbstractTestFacade<BinaryArtifacts.KLib, BinaryArtifacts.Wasm>>
-        get() = { services -> WasmBackendSingleModuleFacade(services, singleModuleType) }
-}
+        get() = ::WasmBackendSingleModuleFacade
 
-open class AbstractFirWasmJsPrecompiledStdlib : FirWasmJsSingleModuleBase(
-    singleModuleType = SingleModuleType.STDLIB,
-    pathToTestDir = "wasm/wasm.tests/precompile",
-    testGroupOutputDirPrefix = "precompile"
-)
 
-open class AbstractFirWasmJsPrecompiledKotlinTest : FirWasmJsSingleModuleBase(
-    singleModuleType = SingleModuleType.KOTLIN_TEST,
-    pathToTestDir = "wasm/wasm.tests/precompile",
-    testGroupOutputDirPrefix = "precompile"
-)
-
-open class AbstractFirWasmJsCodegenSingleModuleBoxTest(
-    testGroupOutputDirPrefix: String = "codegen/firSingleModuleBox/"
-) : FirWasmJsSingleModuleBase(
-    SingleModuleType.TEST_MODULE,
-    pathToTestDir = "compiler/testData/codegen/box/",
-    testGroupOutputDirPrefix = testGroupOutputDirPrefix
-) {
     private class IgnoredTestSuppressor(testServices: TestServices) : AfterAnalysisChecker(testServices) {
         override val directiveContainers: List<DirectivesContainer>
             get() = listOf(WasmEnvironmentConfigurationDirectives)

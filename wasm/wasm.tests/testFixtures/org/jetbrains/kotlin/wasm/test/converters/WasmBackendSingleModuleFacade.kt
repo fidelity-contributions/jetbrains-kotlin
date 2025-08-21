@@ -13,12 +13,11 @@ import org.jetbrains.kotlin.test.services.TestServices
 
 class WasmBackendSingleModuleFacade(
     testServices: TestServices,
-    singleModuleType: SingleModuleType,
 ) : AbstractTestFacade<BinaryArtifacts.KLib, BinaryArtifacts.Wasm>() {
     override val inputKind = ArtifactKinds.KLib
     override val outputKind = ArtifactKinds.Wasm
 
-    private val deserializerFacade = WasmDeserializerSingleModuleFacade(testServices, singleModuleType)
+    private val deserializerFacade = WasmDeserializerSingleModuleFacade(testServices)
 
     private val loweringFacade = WasmLoweringSingleModuleFacade(testServices)
 
