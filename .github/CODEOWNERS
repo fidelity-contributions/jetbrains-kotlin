@@ -121,7 +121,6 @@
 /compiler/testData/codegen/boxModernJdk/ @JetBrains/kotlin-jvm
 /compiler/testData/codegen/boxWasmJsInterop/ @JetBrains/kotlin-wasm
 /compiler/testData/codegen/boxWasmWasi/ @JetBrains/kotlin-wasm
-/compiler/testData/codegen/boxWasmPrecompile/ @JetBrains/kotlin-wasm
 /compiler/testData/codegen/bytecodeListing/ @JetBrains/kotlin-jvm @JetBrains/kotlin-frontend
 /compiler/testData/codegen/bytecodeText/ @JetBrains/kotlin-jvm @JetBrains/kotlin-frontend
 /compiler/testData/codegen/composeLike/ @JetBrains/kotlin-jvm

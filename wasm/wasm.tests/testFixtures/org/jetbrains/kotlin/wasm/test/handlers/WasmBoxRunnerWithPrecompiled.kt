@@ -16,8 +16,6 @@ import org.jetbrains.kotlin.test.services.TestServices
 import org.jetbrains.kotlin.test.services.moduleStructure
 import org.jetbrains.kotlin.wasm.test.tools.WasmVM
 import org.jetbrains.kotlin.test.services.configuration.WasmEnvironmentConfigurator
-import org.jetbrains.kotlin.test.services.configuration.WasmEnvironmentConfigurator.Companion.kotlinTestPath
-import org.jetbrains.kotlin.test.services.configuration.WasmEnvironmentConfigurator.Companion.stdlibPath
 import org.jetbrains.kotlin.wasm.test.precompiledKotlinTestOutputDir
 import org.jetbrains.kotlin.wasm.test.precompiledKotlinTestOutputName
 import org.jetbrains.kotlin.wasm.test.precompiledStdlibOutputDir
@@ -71,15 +69,12 @@ class WasmBoxRunnerWithPrecompiled(
                     let actualResult;
                     try {
                         // Use "dynamic import" to catch exception happened during JS & Wasm modules initialization
-                        os.chdir('${precompiledStdlibOutputDir.toJsPath()}');
                         let stdlib = await import('${stdlibInitFile.toJsPath()}');
                         let stdlibInstantiate = await stdlib.instantiate();
                 
-                        os.chdir('${precompiledKotlinTestOutputDir.toJsPath()}');
                         let test = await import('${kotlinTestInitFile.toJsPath()}');
                         let testInstantiate = await test.instantiate({ '<kotlin>': stdlibInstantiate.exports });
                 
-                        os.chdir('${outputDirBase.toJsPath()}');
                         let index = await import('./${artifacts.compilerResult.baseFileName}.uninstantiated.mjs');
                         let indexInstantiate = await index.instantiate({ '<kotlin>': stdlibInstantiate.exports,  '<kotlin-test>': testInstantiate.exports });
                         let jsModule = indexInstantiate.exports;
@@ -123,7 +118,7 @@ class WasmBoxRunnerWithPrecompiled(
         val failsIn: List<String> = InTextDirectivesUtils.findListWithPrefixes(testFileText, "// WASM_FAILS_IN: ")
 
         val useNewExceptionProposal = USE_NEW_EXCEPTION_HANDLING_PROPOSAL in testServices.moduleStructure.allDirectives
-        val exceptions = WasmVM.V8.runWithCaughtExceptions(
+        val exceptions = WasmVM.NodeJs.runWithCaughtExceptions(
             debugMode = debugMode,
             useNewExceptionHandling = useNewExceptionProposal,
             failsIn = failsIn,
