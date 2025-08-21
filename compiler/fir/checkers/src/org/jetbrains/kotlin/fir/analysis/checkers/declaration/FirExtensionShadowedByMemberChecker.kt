@@ -76,7 +76,7 @@ sealed class FirExtensionShadowedByMemberChecker(kind: MppCheckerKind) : FirCall
         if (shadowingMember != null) {
             val shadowingMemberDeprecation = shadowingMember.getDeprecation(context.session, declaration)
 
-            if (shadowingMemberDeprecation == null || shadowingMemberDeprecation.deprecationLevel != DeprecationLevelValue.HIDDEN) {
+            if (shadowingMemberDeprecation?.deprecationLevel != DeprecationLevelValue.HIDDEN) {
                 reporter.reportOn(declaration.source, FirErrors.EXTENSION_SHADOWED_BY_MEMBER, shadowingMember)
                 return
             }
