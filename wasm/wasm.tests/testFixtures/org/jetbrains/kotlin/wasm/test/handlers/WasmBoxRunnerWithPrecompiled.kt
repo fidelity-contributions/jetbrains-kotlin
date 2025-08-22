@@ -47,9 +47,6 @@ class WasmBoxRunnerWithPrecompiled(
     }
 
 
-    private fun File.toJsPath(): String =
-        if (File.separatorChar == '\\') path.replace("\\", "\\\\") else path
-
     private fun runWasmCode() {
         val artifacts = modulesToArtifact.entries
             .first { WasmEnvironmentConfigurator.isMainModule(it.key, testServices) }
@@ -69,10 +66,10 @@ class WasmBoxRunnerWithPrecompiled(
                     let actualResult;
                     try {
                         // Use "dynamic import" to catch exception happened during JS & Wasm modules initialization
-                        let stdlib = await import('${stdlibInitFile.toJsPath()}');
+                        let stdlib = await import('${stdlibInitFile.relativeTo(outputDirBase)}');
                         let stdlibInstantiate = await stdlib.instantiate();
                 
-                        let test = await import('${kotlinTestInitFile.toJsPath()}');
+                        let test = await import('${kotlinTestInitFile.relativeTo(outputDirBase)}');
                         let testInstantiate = await test.instantiate({ '<kotlin>': stdlibInstantiate.exports });
                 
                         let index = await import('./${artifacts.compilerResult.baseFileName}.uninstantiated.mjs');
