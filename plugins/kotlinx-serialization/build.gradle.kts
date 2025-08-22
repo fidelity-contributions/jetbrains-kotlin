@@ -190,7 +190,7 @@ projectTests {
         setUpJsIrBoxTests()
     }
 
-    testGenerator("org.jetbrains.kotlinx.serialization.TestGeneratorKt")
+    testGenerator("org.jetbrains.kotlin.generators.tests.GenerateSerializationTestsKt")
 
     withJvmStdlibAndReflect()
 }

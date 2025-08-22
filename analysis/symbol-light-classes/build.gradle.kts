@@ -39,11 +39,13 @@ sourceSets {
 }
 
 projectTests {
-    testTask(jUnitMode = JUnitMode.JUnit5) {
+    testTask(jUnitMode = JUnitMode.JUnit5, defineJDKEnvVariables = listOf(JdkMajorVersion.JDK_11_0, JdkMajorVersion.JDK_17_0)) {
         dependsOn(":dist")
         dependsOn(":plugins:plugin-sandbox:plugin-annotations:distAnnotations")
         workingDir = rootDir
     }
+
+    withJvmStdlibAndReflect()
 }
 
 tasks.withType<KotlinJvmCompile>().configureEach {
